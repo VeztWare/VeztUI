@@ -1,1 +1,112 @@
+local Library = {}
 
+function Library:CreateUI()
+	-- Create main ScreenGui
+	local Utility = Instance.new("ScreenGui")
+	Utility.Name = "Utility"
+	Utility.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	Utility.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	self.GUI = Utility
+	self.Tabs = {}
+	self.XOffset = 0.272806436  -- Starting X position for the first tab
+end
+
+function Library:NewTab(tabName)
+	-- Create a new tab
+	local Tab = {}
+	Tab.Frame = Instance.new("Frame")
+	Tab.TextLabel = Instance.new("TextLabel")
+	Tab.Toggles = {}
+	Tab.YOffset = 0  -- Starting Y position for the first toggle in this tab
+
+	-- Tab Frame setup (keeping the exact position)
+	Tab.Frame.Parent = self.GUI
+	Tab.Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Black background for tab
+	Tab.Frame.BorderSizePixel = 0
+	Tab.Frame.Position = UDim2.new(self.XOffset, 0, 0.134632021, 0)  -- Adjusted X position using XOffset
+	Tab.Frame.Size = UDim2.new(0.103798546, 0, 0.0653679818, 0)  -- Same size as the original code
+
+	-- Tab Text setup
+	Tab.TextLabel.Parent = Tab.Frame
+	Tab.TextLabel.BackgroundTransparency = 1
+	Tab.TextLabel.Size = UDim2.new(1, 0, 1, 0)
+	Tab.TextLabel.Font = Enum.Font.SourceSans
+	Tab.TextLabel.Text = tabName
+	Tab.TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Tab.TextLabel.TextSize = 14
+
+	-- Update the XOffset for the next tab
+	self.XOffset = self.XOffset + 0.103798546 + 0.010 -- Increase XOffset to avoid overlap (width of the tab + some space)
+
+	table.insert(self.Tabs, Tab)
+	return Tab
+end
+
+function Library:NewToggle(tab, name, callback)
+	-- Create a new toggle button in the given tab
+	local Toggle = Instance.new("TextButton")
+
+	-- Toggle button setup (keeping original position and size)
+	Toggle.Parent = self.GUI
+	Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  -- Dark button background
+	Toggle.BorderSizePixel = 0
+	Toggle.Position = UDim2.new(tab.Frame.Position.X.Scale, tab.Frame.Position.X.Offset, tab.Frame.Position.Y.Scale + tab.Frame.Size.Y.Scale + tab.YOffset, tab.Frame.Position.Y.Offset + tab.Frame.Size.Y.Offset + tab.YOffset)  -- Stack vertically by adjusting Y
+	Toggle.Size = UDim2.new(0.103798524, 0, 0.0653679743, 0)  -- Same size as the original button
+	Toggle.Font = Enum.Font.SourceSans
+	Toggle.Text = name
+	Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Toggle.TextSize = 14
+
+	-- Toggle state management
+	local toggled = false
+	Toggle.MouseButton1Click:Connect(function()
+		toggled = not toggled
+		if toggled then
+			Toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  -- Green when toggled ON
+		else
+			Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  -- Grey when toggled OFF
+		end
+		callback(toggled)
+	end)
+
+	-- Update the YOffset for the next toggle in the same tab
+	tab.YOffset = tab.YOffset + Toggle.Size.Y.Scale-- Update Y position for next toggle
+
+end
+
+-- Utility functions for notifications and actions
+function Library:CreateNotification(text)
+	-- Create a notification GUI
+	local Notification = Instance.new("ScreenGui")
+	Notification.Name = "Notification"
+	Notification.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	Notification.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local Frame = Instance.new("Frame")
+	Frame.Parent = Notification
+	Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(0.764, 0, 1, 0)  -- Same position as in your original code
+	Frame.Size = UDim2.new(0, 234, 0, 54)
+
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Parent = Frame
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Size = UDim2.new(1, 0, 1, 0)
+	TextLabel.Font = Enum.Font.SourceSans
+	TextLabel.Text = text
+	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.TextSize = 14
+
+	-- Animate notification slide-in
+	local TweenService = game:GetService("TweenService")
+	local tween = TweenService:Create(Frame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.764, 0, 0.831, 0)})
+	tween:Play()
+
+	-- Destroy the notification after 3 seconds
+	task.delay(3, function()
+		Notification:Destroy()
+	end)
+end
+return Library
