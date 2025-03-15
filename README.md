@@ -1,1 +1,1 @@
-a UI library for roblox made by vezt (me), documentary and tutorial on use will be out soon!
+This repository contains a Roblox UI library developed by Vezt (me). It consists of tools and components to support developers in crafting user-friendly, interactive, and intuitive interfaces for Roblox games. A documentary and tutorial manual on its operation will be out in the very near future to help users go through its capabilities and its use.
