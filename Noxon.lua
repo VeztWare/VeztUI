@@ -240,7 +240,7 @@ function Toggle:_toggleDropdown()
 		tween:Play()
 
 		local arrowTween = TweenService:Create(self._imageLabel, TweenInfo.new(CONFIG.ANIMATION_TIME), {
-			Rotation = 270
+			Rotation = 180
 		})
 		arrowTween:Play()
 
