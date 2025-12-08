@@ -104,7 +104,7 @@ function Tab:CreateToggle(title, callback)
 	toggle._button.BorderSizePixel = 0
 	toggle._button.Size = UDim2.new(0, 412, 0, 50)
 	toggle._button.Font = Enum.Font.SourceSans
-	toggle._button.Text = "      " .. title
+	toggle._button.Text = "                  " .. title
 	toggle._button.TextColor3 = CONFIG.COLORS.White
 	toggle._button.TextSize = 20
 	toggle._button.TextWrapped = true
@@ -114,6 +114,26 @@ function Tab:CreateToggle(title, callback)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 16)
 	corner.Parent = toggle._button
+
+	local typeIcon = Instance.new("ImageLabel")
+	typeIcon.Name = "Type"
+	typeIcon.Parent = toggle._button
+	typeIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	typeIcon.BackgroundTransparency = 1.000
+	typeIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	typeIcon.BorderSizePixel = 0
+	typeIcon.Position = UDim2.new(0.024271844, 0, 0.159999996, 0)
+	typeIcon.Size = UDim2.new(0, 34, 0, 33)
+	typeIcon.Image = "rbxassetid://9728118892"
+
+	local separator = Instance.new("Frame")
+	separator.Name = "Separator"
+	separator.Parent = toggle._button
+	separator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	separator.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	separator.BorderSizePixel = 0
+	separator.Position = UDim2.new(0.122000001, 0, 0, 0)
+	separator.Size = UDim2.new(0, 1, 0, 50)
 
 	toggle._imageLabel = Instance.new("ImageButton")
 	toggle._imageLabel.Parent = toggle._button
@@ -133,6 +153,67 @@ function Tab:CreateToggle(title, callback)
 
 	table.insert(self._buttons, toggle)
 	return toggle
+end
+
+function Tab:CreateLabel(text)
+	local label = setmetatable({
+		_tab = self,
+		_text = text,
+		_button = nil,
+		_layoutOrder = #self._buttons * 2
+	}, {__index = Label})
+
+	label._button = Instance.new("TextButton")
+	label._button.Name = "Label"
+	label._button.Parent = self._toggleHolder
+	label._button.Active = false
+	label._button.BackgroundColor3 = CONFIG.COLORS.Button
+	label._button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	label._button.BorderSizePixel = 0
+	label._button.Size = UDim2.new(0, 412, 0, 50)
+	label._button.AutoButtonColor = false
+	label._button.Font = Enum.Font.SourceSans
+	label._button.Text = "                  " .. text
+	label._button.TextColor3 = CONFIG.COLORS.White
+	label._button.TextSize = 20
+	label._button.TextWrapped = true
+	label._button.TextXAlignment = Enum.TextXAlignment.Left
+	label._button.LayoutOrder = label._layoutOrder
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 16)
+	corner.Parent = label._button
+
+	local typeIcon = Instance.new("ImageLabel")
+	typeIcon.Name = "Type"
+	typeIcon.Parent = label._button
+	typeIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	typeIcon.BackgroundTransparency = 1.000
+	typeIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	typeIcon.BorderSizePixel = 0
+	typeIcon.Position = UDim2.new(0.024271844, 0, 0.159999996, 0)
+	typeIcon.Size = UDim2.new(0, 34, 0, 33)
+	typeIcon.Image = "rbxassetid://77863683668201"
+
+	local separator = Instance.new("Frame")
+	separator.Name = "Separator"
+	separator.Parent = label._button
+	separator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	separator.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	separator.BorderSizePixel = 0
+	separator.Position = UDim2.new(0.122000001, 0, 0, 0)
+	separator.Size = UDim2.new(0, 1, 0, 50)
+
+	table.insert(self._buttons, label)
+	return label
+end
+
+Label = {}
+Label.__index = Label
+
+function Label:UpdateLabel(newText)
+	self._text = newText
+	self._button.Text = "                  " .. newText
 end
 
 Toggle = {}
