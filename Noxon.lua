@@ -546,6 +546,18 @@ function Library.CreateWindow(title)
 	window._topBar.BorderSizePixel = 0
 	window._topBar.Size = UDim2.new(0, 555, 0, 23)
 
+	window._closeButton = Instance.new("ImageButton")
+	window._closeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+	window._closeButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	window._closeButton.BorderSizePixel = 0
+	window._closeButton.Position = UDim2.new(0.933333337, 0, 0, 0)
+	window._closeButton.Size = UDim2.new(0, 24, 0, 23)
+	window._closeButton.Image = "rbxassetid://132261474823036"
+
+	window._closeCorner = Instance.new("UICorner")
+	window._closeCorner.CornerRadius = UDim.new(0, 16)
+	window._closeCorner.Parent = window._closeButton
+
 	local topCorner = Instance.new("UICorner")
 	topCorner.CornerRadius = UDim.new(0, 16)
 	topCorner.Parent = window._topBar
@@ -578,6 +590,10 @@ function Library.CreateWindow(title)
 	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	tabLayout.Padding = UDim.new(0, 5)
 
+	window._closeButton.Activated:Connect(function()
+		window._screenGui:Destroy()
+	end)
+	
 	local dragging = false
 	local dragInput
 	local dragStart
