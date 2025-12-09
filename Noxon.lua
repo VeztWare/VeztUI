@@ -13,6 +13,8 @@ local CONFIG = {
 		TopBar = Color3.fromRGB(62, 62, 62),
 		Button = Color3.fromRGB(62, 62, 62),
 		Dropdown = Color3.fromRGB(35, 35, 35),
+		DropdownOption = Color3.fromRGB(45, 45, 45),
+		DropdownOptionHover = Color3.fromRGB(55, 55, 55),
 		ToggleOn = Color3.fromRGB(0, 200, 0),
 		ToggleOff = Color3.fromRGB(100, 100, 100),
 		SliderBg = Color3.fromRGB(60, 60, 60),
@@ -261,6 +263,49 @@ function Toggle:NewSlider(name, min, max, default, callback)
 	return self
 end
 
+function Toggle:NewTextBox(name, callback)
+	if #self._options == 0 then
+		self._imageLabel.Visible = true
+		self:_setupDropdown()
+	end
+
+	local textbox = {
+		type = "textbox",
+		name = name,
+		callback = callback
+	}
+
+	table.insert(self._options, textbox)
+	self:_addTextBoxToDropdown(textbox)
+	self:_updateCanvasSize()
+
+	return self
+end
+
+function Toggle:NewDropdown(name, options, callback)
+	if #self._options == 0 then
+		self._imageLabel.Visible = true
+		self:_setupDropdown()
+	end
+
+	local dropdown = {
+		type = "dropdown",
+		name = name,
+		options = options or {},
+		callback = callback,
+		currentOption = nil,
+		_container = nil,
+		_optionsFrame = nil,
+		_isOpen = false
+	}
+
+	table.insert(self._options, dropdown)
+	self:_addDropdownToDropdown(dropdown)
+	self:_updateCanvasSize()
+
+	return dropdown
+end
+
 function Toggle:_setupDropdown()
 	if self._dropdown then return end
 
@@ -269,9 +314,9 @@ function Toggle:_setupDropdown()
 	self._dropdown.Size = UDim2.new(1, 0, 0, 0)
 	self._dropdown.BackgroundColor3 = CONFIG.COLORS.Dropdown
 	self._dropdown.BorderSizePixel = 0
-	self._dropdown.ClipsDescendants = true
+	self._dropdown.ClipsDescendants = false
 	self._dropdown.Visible = false
-	self._dropdown.LayoutOrder = self._layoutOrder + 1
+	self._dropdown.LayoutOrder = self._button.LayoutOrder + 1
 	self._dropdown.Parent = self._tab._toggleHolder
 
 	local corner = Instance.new("UICorner")
@@ -290,9 +335,9 @@ function Toggle:_setupDropdown()
 	padding.PaddingRight = UDim.new(0, 8)
 	padding.Parent = self._dropdown
 
-    self._imageLabel.Activated:Connect(function()
-	    self:_toggleDropdown()
-    end)
+	self._imageLabel.Activated:Connect(function()
+		self:_toggleDropdown()
+	end)
 end
 
 function Toggle:_toggleDropdown()
@@ -502,6 +547,258 @@ function Toggle:_addSliderToDropdown(sliderData)
 	end)
 end
 
+function Toggle:_addTextBoxToDropdown(textboxData)
+	local container = Instance.new("Frame")
+	container.Name = textboxData.name .. "_Container"
+	container.Size = UDim2.new(1, 0, 0, CONFIG.OPTION_HEIGHT)
+	container.BackgroundTransparency = 1
+	container.Parent = self._dropdown
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Label"
+	label.Size = UDim2.new(0.3, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = textboxData.name
+	label.TextColor3 = CONFIG.COLORS.White
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = container
+
+	local textBox = Instance.new("TextBox")
+	textBox.Name = "InputBox"
+	textBox.Size = UDim2.new(0.65, 0, 0, 28)
+	textBox.Position = UDim2.new(0.33, 0, 0.5, -14)
+	textBox.BackgroundColor3 = CONFIG.COLORS.TextBoxBg
+	textBox.BorderSizePixel = 0
+	textBox.Text = ""
+	textBox.PlaceholderText = "Enter text..."
+	textBox.TextColor3 = CONFIG.COLORS.White
+	textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+	textBox.Font = Enum.Font.Gotham
+	textBox.TextSize = 14
+	textBox.ClearTextOnFocus = false
+	textBox.Parent = container
+
+	local boxCorner = Instance.new("UICorner")
+	boxCorner.CornerRadius = UDim.new(0, 6)
+	boxCorner.Parent = textBox
+
+	textBox.FocusLost:Connect(function(enterPressed)
+		if textboxData.callback then
+			textboxData.callback(textBox.Text)
+		end
+	end)
+end
+
+function Toggle:_addDropdownToDropdown(dropdownData)
+	local container = Instance.new("Frame")
+	container.Name = dropdownData.name .. "_Container"
+	container.Size = UDim2.new(1, 0, 0, CONFIG.OPTION_HEIGHT)
+	container.BackgroundTransparency = 1
+	container.ClipsDescendants = false
+	container.Parent = self._dropdown
+	dropdownData._container = container
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Label"
+	label.Size = UDim2.new(0.3, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = dropdownData.name
+	label.TextColor3 = CONFIG.COLORS.White
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = container
+
+	local dropdownButton = Instance.new("TextButton")
+	dropdownButton.Name = "DropdownButton"
+	dropdownButton.Size = UDim2.new(0.65, 0, 0, 28)
+	dropdownButton.Position = UDim2.new(0.33, 0, 0.5, -14)
+	dropdownButton.BackgroundColor3 = CONFIG.COLORS.TextBoxBg
+	dropdownButton.BorderSizePixel = 0
+	dropdownButton.Text = dropdownData.currentOption or "Select..."
+	dropdownButton.TextColor3 = CONFIG.COLORS.White
+	dropdownButton.Font = Enum.Font.Gotham
+	dropdownButton.TextSize = 14
+	dropdownButton.Parent = container
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 6)
+	btnCorner.Parent = dropdownButton
+
+	local arrow = Instance.new("TextLabel")
+	arrow.Name = "Arrow"
+	arrow.Size = UDim2.new(0, 20, 1, 0)
+	arrow.Position = UDim2.new(1, -22, 0, 0)
+	arrow.BackgroundTransparency = 1
+	arrow.Text = "▼"
+	arrow.TextColor3 = CONFIG.COLORS.White
+	arrow.Font = Enum.Font.Gotham
+	arrow.TextSize = 12
+	arrow.Parent = dropdownButton
+
+	local optionsFrame = Instance.new("ScrollingFrame")
+	optionsFrame.Name = "OptionsFrame"
+	optionsFrame.Size = UDim2.new(0.65, 0, 0, 0)
+	optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
+	optionsFrame.BackgroundColor3 = CONFIG.COLORS.Dropdown
+	optionsFrame.BorderSizePixel = 0
+	optionsFrame.Visible = false
+	optionsFrame.ClipsDescendants = true
+	optionsFrame.ScrollBarThickness = 4
+	optionsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	optionsFrame.ZIndex = 100
+	optionsFrame.Parent = container
+
+	local optCorner = Instance.new("UICorner")
+	optCorner.CornerRadius = UDim.new(0, 6)
+	optCorner.Parent = optionsFrame
+
+	local optLayout = Instance.new("UIListLayout")
+	optLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	optLayout.Padding = UDim.new(0, 2)
+	optLayout.Parent = optionsFrame
+
+	optLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		local contentHeight = optLayout.AbsoluteContentSize.Y
+		optionsFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+	end)
+
+	local function refreshOptions()
+		for _, child in ipairs(optionsFrame:GetChildren()) do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
+
+		for i, option in ipairs(dropdownData.options) do
+			local optionButton = Instance.new("TextButton")
+			optionButton.Name = "Option_" .. i
+			optionButton.Size = UDim2.new(1, 0, 0, 25)
+			optionButton.BackgroundColor3 = CONFIG.COLORS.DropdownOption
+			optionButton.BorderSizePixel = 0
+			optionButton.Text = tostring(option)
+			optionButton.TextColor3 = CONFIG.COLORS.White
+			optionButton.Font = Enum.Font.Gotham
+			optionButton.TextSize = 13
+			optionButton.LayoutOrder = i
+			optionButton.ZIndex = 101
+			optionButton.Parent = optionsFrame
+
+			local optCorner = Instance.new("UICorner")
+			optCorner.CornerRadius = UDim.new(0, 6)
+			optCorner.Parent = optionButton
+
+			optionButton.MouseEnter:Connect(function()
+				optionButton.BackgroundColor3 = CONFIG.COLORS.DropdownOptionHover
+			end)
+
+			optionButton.MouseLeave:Connect(function()
+				optionButton.BackgroundColor3 = CONFIG.COLORS.DropdownOption
+			end)
+
+			optionButton.Activated:Connect(function()
+				dropdownData.currentOption = option
+				dropdownButton.Text = tostring(option)
+
+				if dropdownData.callback then
+					dropdownData.callback(option)
+				end
+
+				dropdownData._isOpen = false
+				local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+					Size = UDim2.new(0.65, 0, 0, 0)
+				})
+				tween:Play()
+				tween.Completed:Connect(function()
+					optionsFrame.Visible = false
+				end)
+
+				local arrowTween = TweenService:Create(arrow, TweenInfo.new(0.2), {
+					Rotation = 0
+				})
+				arrowTween:Play()
+			end)
+		end
+	end
+
+	refreshOptions()
+
+	dropdownButton.Activated:Connect(function()
+		if dropdownData._isOpen then
+			dropdownData._isOpen = false
+			local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+				Size = UDim2.new(0.65, 0, 0, 0)
+			})
+			tween:Play()
+			tween.Completed:Connect(function()
+				optionsFrame.Visible = false
+			end)
+
+			local arrowTween = TweenService:Create(arrow, TweenInfo.new(0.2), {
+				Rotation = 0
+			})
+			arrowTween:Play()
+		else
+			dropdownData._isOpen = true
+			optionsFrame.Visible = true
+
+			local window = self._tab._window._mainFrame
+			local containerAbsPos = container.AbsolutePosition
+			local containerAbsSize = container.AbsoluteSize
+			local windowAbsPos = window.AbsolutePosition
+			local windowAbsSize = window.AbsoluteSize
+
+			local containerBottom = containerAbsPos.Y + containerAbsSize.Y
+			local windowBottom = windowAbsPos.Y + windowAbsSize.Y
+
+			local containerTop = containerAbsPos.Y
+			local windowTop = windowAbsPos.Y
+
+			local availableSpaceBelow = windowBottom - containerBottom - 10
+			local availableSpaceAbove = containerTop - windowTop - 10
+
+			local maxPreferredHeight = math.min(#dropdownData.options * 27, 150)
+			local openDownwards = true
+			local actualMaxHeight = maxPreferredHeight
+
+			if availableSpaceBelow < maxPreferredHeight and availableSpaceAbove > maxPreferredHeight then
+				openDownwards = false
+				optionsFrame.Position = UDim2.new(0.33, 0, 0, -actualMaxHeight - 2)
+			elseif availableSpaceBelow < maxPreferredHeight then
+				openDownwards = true
+				actualMaxHeight = math.min(availableSpaceBelow, maxPreferredHeight)
+				optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
+			else
+				openDownwards = true
+				optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
+			end
+
+			if actualMaxHeight < 25 then
+				actualMaxHeight = 25
+			end
+
+			local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+				Size = UDim2.new(0.65, 0, 0, actualMaxHeight)
+			})
+			tween:Play()
+
+			local arrowTween = TweenService:Create(arrow, TweenInfo.new(0.2), {
+				Rotation = openDownwards and 180 or 0
+			})
+			arrowTween:Play()
+		end
+	end)
+
+	dropdownData.Refresh = function(self, newOptions)
+		self.options = newOptions or {}
+		self.currentOption = nil
+		dropdownButton.Text = "Select..."
+		refreshOptions()
+	end
+end
+
 function Toggle:_updateCanvasSize()
 	task.wait(0.05)
 	if self._tab._toggleHolder:FindFirstChildOfClass("UIListLayout") then
@@ -532,6 +829,7 @@ function Library.CreateWindow(title)
 	window._mainFrame.Parent = window._screenGui
 	window._mainFrame.BackgroundColor3 = CONFIG.COLORS.MainBg
 	window._mainFrame.BorderSizePixel = 0
+	window._mainFrame.ClipsDescendants = false
 	window._mainFrame.Position = UDim2.new(0.0835517645, 0, 0.240012914, -10)
 	window._mainFrame.Size = UDim2.new(0, 555, 0, 342)
 
@@ -594,7 +892,7 @@ function Library.CreateWindow(title)
 	window._closeButton.Activated:Connect(function()
 		window._screenGui:Destroy()
 	end)
-	
+
 	local dragging = false
 	local dragInput
 	local dragStart
