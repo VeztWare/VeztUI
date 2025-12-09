@@ -553,6 +553,7 @@ function Library.CreateWindow(title)
 	window._closeButton.Position = UDim2.new(0.933333337, 0, 0, 0)
 	window._closeButton.Size = UDim2.new(0, 24, 0, 23)
 	window._closeButton.Image = "rbxassetid://132261474823036"
+	window._closeButton.Parent = window._topBar
 
 	window._closeCorner = Instance.new("UICorner")
 	window._closeCorner.CornerRadius = UDim.new(0, 16)
@@ -598,11 +599,12 @@ function Library.CreateWindow(title)
 	local dragInput
 	local dragStart
 	local startPos
+	local dragInputObject = nil
 
 	local function update(input)
 		local delta = input.Position - dragStart
 		window._mainFrame.Position = UDim2.new(
-			startPos.X.Scale, 
+			startPos.X.Scale,
 			startPos.X.Offset + delta.X, 
 			startPos.Y.Scale, 
 			startPos.Y.Offset + delta.Y
@@ -610,37 +612,48 @@ function Library.CreateWindow(title)
 	end
 
 	window._topBar.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 
+			or input.UserInputType == Enum.UserInputType.Touch) 
+			and not dragging then 
 
 			dragging = true
 			dragStart = input.Position
 			startPos = window._mainFrame.Position
+			dragInputObject = input
 
-			local connection
-			connection = input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-					connection:Disconnect()
-				end
-			end)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				input:GetPropertyChangedSignal("UserInputState"):Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+						dragInputObject = nil
+					end
+				end)
+			else
+				local connection
+				connection = input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+						dragInputObject = nil
+						connection:Disconnect()
+					end
+				end)
+			end
 		end
 	end)
 
 	window._topBar.InputChanged:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseMovement 
-			or input.UserInputType == Enum.UserInputType.Touch) 
-			and dragging then
+		if dragging and input == dragInputObject then
 			dragInput = input
 		end
 	end)
 
 	UIS.InputChanged:Connect(function(input)
-		if dragging and (input == dragInput 
-			or input.UserInputType == Enum.UserInputType.Touch) then
+		if dragging and input == dragInputObject then
 			update(input)
 		end
 	end)
+
+	window._topBar.Active = true
 
 	return window
 end
