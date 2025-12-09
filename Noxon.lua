@@ -648,8 +648,12 @@ function Library.CreateWindow(title)
 	end)
 
 	UIS.InputChanged:Connect(function(input)
-		if dragging and input == dragInputObject then
-			update(input)
+		if dragging then
+			if input.UserInputType == Enum.UserInputType.MouseMovement then
+				update(input)
+			elseif input == dragInputObject then
+				update(input)
+			end
 		end
 	end)
 
