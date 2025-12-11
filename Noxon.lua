@@ -597,6 +597,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 	container.Size = UDim2.new(1, 0, 0, CONFIG.OPTION_HEIGHT)
 	container.BackgroundTransparency = 1
 	container.ClipsDescendants = false
+	container.ZIndex = 1
 	container.Parent = self._dropdown
 	dropdownData._container = container
 
@@ -609,6 +610,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 	label.Font = Enum.Font.Gotham
 	label.TextSize = 14
 	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.ZIndex = 1
 	label.Parent = container
 
 	local dropdownButton = Instance.new("TextButton")
@@ -621,6 +623,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 	dropdownButton.TextColor3 = CONFIG.COLORS.White
 	dropdownButton.Font = Enum.Font.Gotham
 	dropdownButton.TextSize = 14
+	dropdownButton.ZIndex = 1
 	dropdownButton.Parent = container
 
 	local btnCorner = Instance.new("UICorner")
@@ -636,20 +639,21 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 	arrow.TextColor3 = CONFIG.COLORS.White
 	arrow.Font = Enum.Font.Gotham
 	arrow.TextSize = 12
+	arrow.ZIndex = 2
 	arrow.Parent = dropdownButton
 
+	local screenGui = self._tab._window._screenGui
 	local optionsFrame = Instance.new("ScrollingFrame")
 	optionsFrame.Name = "OptionsFrame"
-	optionsFrame.Size = UDim2.new(0.65, 0, 0, 0)
-	optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
+	optionsFrame.Size = UDim2.new(0, 0, 0, 0)
 	optionsFrame.BackgroundColor3 = CONFIG.COLORS.Dropdown
 	optionsFrame.BorderSizePixel = 0
 	optionsFrame.Visible = false
 	optionsFrame.ClipsDescendants = true
 	optionsFrame.ScrollBarThickness = 4
 	optionsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-	optionsFrame.ZIndex = 100
-	optionsFrame.Parent = container
+	optionsFrame.ZIndex = 200
+	optionsFrame.Parent = screenGui
 
 	local optCorner = Instance.new("UICorner")
 	optCorner.CornerRadius = UDim.new(0, 6)
@@ -683,7 +687,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 			optionButton.Font = Enum.Font.Gotham
 			optionButton.TextSize = 13
 			optionButton.LayoutOrder = i
-			optionButton.ZIndex = 101
+			optionButton.ZIndex = 201
 			optionButton.Parent = optionsFrame
 
 			local optCorner = Instance.new("UICorner")
@@ -708,7 +712,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 
 				dropdownData._isOpen = false
 				local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-					Size = UDim2.new(0.65, 0, 0, 0)
+					Size = UDim2.new(0, 0, 0, 0)
 				})
 				tween:Play()
 				tween.Completed:Connect(function()
@@ -729,7 +733,7 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 		if dropdownData._isOpen then
 			dropdownData._isOpen = false
 			local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-				Size = UDim2.new(0.65, 0, 0, 0)
+				Size = UDim2.new(0, 0, 0, 0)
 			})
 			tween:Play()
 			tween.Completed:Connect(function()
@@ -744,48 +748,34 @@ function Toggle:_addDropdownToDropdown(dropdownData)
 			dropdownData._isOpen = true
 			optionsFrame.Visible = true
 
+			local buttonAbsPos = dropdownButton.AbsolutePosition
+			local buttonAbsSize = dropdownButton.AbsoluteSize
+
+			local targetX = buttonAbsPos.X
+			local targetY = buttonAbsPos.Y + buttonAbsSize.Y + 2
+
 			local window = self._tab._window._mainFrame
-			local containerAbsPos = container.AbsolutePosition
-			local containerAbsSize = container.AbsoluteSize
 			local windowAbsPos = window.AbsolutePosition
 			local windowAbsSize = window.AbsoluteSize
-
-			local containerBottom = containerAbsPos.Y + containerAbsSize.Y
 			local windowBottom = windowAbsPos.Y + windowAbsSize.Y
 
-			local containerTop = containerAbsPos.Y
-			local windowTop = windowAbsPos.Y
-
-			local availableSpaceBelow = windowBottom - containerBottom - 10
-			local availableSpaceAbove = containerTop - windowTop - 10
-
+			local availableSpaceBelow = windowBottom - targetY - 10
 			local maxPreferredHeight = math.min(#dropdownData.options * 27, 150)
-			local openDownwards = true
-			local actualMaxHeight = maxPreferredHeight
-
-			if availableSpaceBelow < maxPreferredHeight and availableSpaceAbove > maxPreferredHeight then
-				openDownwards = false
-				optionsFrame.Position = UDim2.new(0.33, 0, 0, -actualMaxHeight - 2)
-			elseif availableSpaceBelow < maxPreferredHeight then
-				openDownwards = true
-				actualMaxHeight = math.min(availableSpaceBelow, maxPreferredHeight)
-				optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
-			else
-				openDownwards = true
-				optionsFrame.Position = UDim2.new(0.33, 0, 0, 30)
-			end
+			local actualMaxHeight = math.min(availableSpaceBelow, maxPreferredHeight)
 
 			if actualMaxHeight < 25 then
 				actualMaxHeight = 25
 			end
 
+			optionsFrame.Position = UDim2.new(0, targetX, 0, targetY)
+			
 			local tween = TweenService:Create(optionsFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-				Size = UDim2.new(0.65, 0, 0, actualMaxHeight)
+				Size = UDim2.new(0, buttonAbsSize.X, 0, actualMaxHeight)
 			})
 			tween:Play()
 
 			local arrowTween = TweenService:Create(arrow, TweenInfo.new(0.2), {
-				Rotation = openDownwards and 180 or 0
+				Rotation = 180
 			})
 			arrowTween:Play()
 		end
